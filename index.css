@@ -1,0 +1,140 @@
+/* ==========================================================================
+   Reset & Core Variables
+   ========================================================================== */
+:root {
+    --bg-color: #f4f7f6;
+    --card-bg: #ffffff;
+    --text-main: #2d3748;
+    --text-muted: #718096;
+    --border-color: #e2e8f0;
+    --primary-color: #4a90e2;
+    
+    /* Strength Color System */
+    --strength-0: #e53e3e; /* Very Weak - Red */
+    --strength-1: #dd6b20; /* Weak - Orange */
+    --strength-2: #d69e2e; /* Fair - Yellow */
+    --strength-3: #38a169; /* Strong - Green */
+    --strength-4: #319795; /* Very Strong - Teal */
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* ==========================================================================
+   Main Layout Container (Card)
+   ========================================================================== */
+.card {
+    background-color: var(--card-bg);
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    max-width: 480px;
+    transition: all 0.3s ease;
+}
+
+h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+/* ==========================================================================
+   Input Field Elements
+   ========================================================================== */
+.input-group {
+    margin-bottom: 1.5rem;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="text"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.15);
+}
+
+/* ==========================================================================
+   Status & Typography Display
+   ========================================================================== */
+#result {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    color: var(--text-muted);
+    transition: color 0.2s ease;
+}
+
+/* Specific UI feedback states triggered by JavaScript text matching */
+#result:contains("Very Weak") { color: var(--strength-0); }
+#result:contains("Weak") { color: var(--strength-1); }
+#result:contains("Fair") { color: var(--strength-2); }
+#result:contains("Strong") { color: var(--strength-3); }
+#result:contains("Very Strong") { color: var(--strength-4); }
+
+/* ==========================================================================
+   Metrics Metric Matrix Grid
+   ========================================================================== */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 1.5rem;
+}
+
+.metrics-grid p {
+    background-color: #f8fafc;
+    border: 1px solid var(--border-color);
+    padding: 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   Dynamic Feedback Area
+   ========================================================================== */
+#feedbackBox {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.feedback-item {
+    font-size: 0.85rem;
+    color: #9b2c2c;
+    background-color: #fff5f5;
+    border-left: 4px solid var(--strength-0);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0 6px 6px 0;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}

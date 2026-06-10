@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Strength Indicator Tool</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+    <main class="card">
+        <h1>Password Strength Indicator Tool</h1>
+        
+        <div class="input-group">
+            <input type="text" id="myInput" placeholder="Type password here...">
+        </div>
+
+        <p id="result">Waiting for you to type in a password...</p>
+        
+        <div class="metrics-grid">
+            <p id="entropy">Entropy: nil</p>
+            <p id="uniqueness">Uniqueness: nil</p>
+            <p id="patterns">Patterns: nil</p>
+        </div>
+        
+        <div id="feedbackBox"></div>
+    </main>
+
+    <script src="index.js"></script>
+</body>
+</html>
