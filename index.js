@@ -7,8 +7,17 @@ const feedbackBox = document.getElementById('feedbackBox');
 
 const commonPasswords = new Set([
     "qwerty",
+    "qwertyuiop",
+    "qwertyuiop[]",
+    "asdf",
+    "asdfghjkl",
+    "asdfghjkl;\"",
+    "zxcvbnm",
+    "zxcvbnm,./",
     "password",
     "admin",
+    "hello",
+    "helloworld",
 ]);
 
 const resultColors = [
@@ -126,6 +135,14 @@ function estimateEntropy(password) {
     return password.length * Math.log2(pool || 1);
 }
 
+function hasRequiredCharacterTypes(password) {
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasSpecialChar = /[^a-zA-Z0-9]/.test(password);
+
+    return hasUppercase && hasLowercase && hasSpecialChar;
+}
+
 function executeAction() {
 
     const password = inputField.value;
@@ -133,10 +150,11 @@ function executeAction() {
     feedbackBox.innerHTML = "";
     
     if (password.trim() === "") {
+        resultParagraph.style.color = "#718096";
         resultParagraph.textContent = "Type in a password for grading...";
-        entropyParagraph.textContent = "Entropy: nil";
-        uniquenessParagraph.textContent = "Character Uniqueness: nil";
-        patternsParagraph.textContent = "Patterns: nil";
+        entropyParagraph.textContent = "Entropy Score: nil";
+        uniquenessParagraph.textContent = "Uniqueness Score: nil";
+        patternsParagraph.textContent = "Patterns Score: nil";
         return;
     }
 
@@ -163,21 +181,25 @@ function executeAction() {
     let uniqueCharacters = countUniqueCharacters(password);
     let uniquenessScore = 0;
 
-    if (uniqueCharacters > 7) {
-        uniquenessScore = 4;
-    } else if (uniqueCharacters > 6) {
-        uniquenessScore = 3;
-    } else if (uniqueCharacters > 5) { 
-        uniquenessScore = 2;
-        feedback.push("Password should have more unique characters.")
-    } else if (uniqueCharacters > 4) {
-        uniquenessScore = 1;
-        feedback.push("Password should have more unique characters.")
+    if (hasRequiredCharacterTypes(password)) {
+        if (uniqueCharacters > 7) {
+            uniquenessScore = 4;
+        } else if (uniqueCharacters > 6) {
+            uniquenessScore = 3;
+        } else if (uniqueCharacters > 5) { 
+            uniquenessScore = 2;
+            feedback.push("Password should have more unique characters.")
+        } else if (uniqueCharacters > 4) {
+            uniquenessScore = 1;
+            feedback.push("Password should have more unique characters.")
+        } else {
+            feedback.push("Password should have more unique characters.")
+        }
     } else {
-        feedback.push("Password should have more unique characters.")
+        feedback.push("Password should have at least one lowercase, one uppercase, and one special character.");
     }
 
-    //Pattern Scoreing
+    //Pattern Scoring
     let patternScore = 4;
     if (isAllSame(password)) {
         patternScore = 0;
@@ -193,7 +215,7 @@ function executeAction() {
         }
         if (containsCommonPassword(password)) {
             feedback.push("Password should not contain common passwords.");
-            patternScore -= 2;
+            patternScore -= 3;
         }
         if (patternScore < 0) patternScore = 0;
     }
@@ -220,9 +242,9 @@ function executeAction() {
     }
     resultParagraph.style.color = resultColors[finalScore];
 
-    entropyParagraph.textContent = "Entropy: " + entropyScore;
-    uniquenessParagraph.textContent = "Character Uniqueness: " + uniquenessScore;
-    patternsParagraph.textContent = "Patterns: " + patternScore;
+    entropyParagraph.textContent = "Entropy Score: " + entropyScore;
+    uniquenessParagraph.textContent = "Uniqueness Score: " + uniquenessScore;
+    patternsParagraph.textContent = "Patterns Score: " + patternScore;
 
     feedback.forEach(msg => {
         const div = document.createElement("div");
