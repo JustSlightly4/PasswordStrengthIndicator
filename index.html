@@ -7,24 +7,29 @@
     <link rel="stylesheet" href="index.css">
 </head>
 <body>
-
-    <main class="card">
-        <h1>Password Strength Indicator Tool</h1>
+    <div class="card">
+        <h2>Password Strength Indicator Tool</h2>
         
         <div class="input-group">
-            <input type="text" id="myInput" placeholder="Type password here...">
+            <input type="password" id="passwordInput" placeholder="Type your password..." autocomplete="off">
+            <button type="button" id="toggleVisibility">Show</button>
         </div>
 
-        <p id="result">Waiting for you to type in a password...</p>
-        
-        <div class="metrics-grid">
-            <p id="entropy">Entropy Score: nil</p>
-            <p id="uniqueness">Uniqueness Score: nil</p>
-            <p id="patterns">Patterns Score: nil</p>
+        <div class="meter-container">
+            <div id="strengthBar"></div>
         </div>
         
-        <div id="feedbackBox"></div>
-    </main>
+        <div class="status-text">
+            Strength: <span id="strengthLabel" class="very-weak">Very Weak</span>
+        </div>
+
+        <div class="feedback-container">
+            <h3>Security Insights</h3>
+            <ul id="feedbackList">
+                <li>Enter a password to start evaluation.</li>
+            </ul>
+        </div>
+    </div>
 
     <script src="index.js"></script>
 </body>

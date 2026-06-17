@@ -1,32 +1,24 @@
-/* ==========================================================================
-   Reset & Core Variables
-   ========================================================================== */
 :root {
-    --bg-color: #f4f7f6;
+    --very-weak: #e74c3c;
+    --weak: #e67e22;
+    --fair: #f1c40f;
+    --strong: #2ecc71;
+    --very-strong: #27ae60;
+    --bg-color: #f5f6fa;
     --card-bg: #ffffff;
-    --text-main: #2d3748;
-    --text-muted: #718096;
-    --border-color: #e2e8f0;
-    --primary-color: #4a90e2;
-    
-    /* Strength Color System */
-    --strength-0: #e53e3e; /* Very Weak - Red */
-    --strength-1: #dd6b20; /* Weak - Orange */
-    --strength-2: #d69e2e; /* Fair - Yellow */
-    --strength-3: #38a169; /* Strong - Green */
-    --strength-4: #319795; /* Very Strong - Teal */
+    --text-color: #2c3e50;
 }
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: var(--bg-color);
-    color: var(--text-main);
+    color: var(--text-color);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -34,107 +26,123 @@ body {
     padding: 20px;
 }
 
-/* ==========================================================================
-   Main Layout Container (Card)
-   ========================================================================== */
 .card {
-    background-color: var(--card-bg);
-    padding: 2.5rem;
+    background: var(--card-bg);
+    padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
     width: 100%;
-    max-width: 480px;
-    transition: all 0.3s ease;
+    max-width: 450px;
 }
 
-h1 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-    text-align: center;
+h2 {
+    margin-bottom: 8px;
+    font-size: 24px;
 }
 
-/* ==========================================================================
-   Input Field Elements
-   ========================================================================== */
+.subtitle {
+    font-size: 14px;
+    color: #7f8c8d;
+    margin-bottom: 24px;
+}
+
 .input-group {
-    margin-bottom: 1.5rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
-input[type="text"] {
+input[type="password"], input[type="text"] {
     width: 100%;
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-    border: 2px solid var(--border-color);
+    padding: 12px 60px 12px 16px;
+    font-size: 16px;
+    border: 2px solid #dcdde1;
     border-radius: 8px;
     outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.2s;
 }
 
-input[type="text"]:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.15);
+input:focus {
+    border-color: #3498db;
 }
 
-/* ==========================================================================
-   Status & Typography Display
-   ========================================================================== */
-#result {
-    font-size: 1.1rem;
+#toggleVisibility {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #7f8c8d;
+    cursor: pointer;
     font-weight: 600;
-    margin-bottom: 1.25rem;
-    color: var(--text-muted);
-    transition: color 0.2s ease;
+    font-size: 14px;
 }
 
-/* Specific UI feedback states triggered by JavaScript text matching */
-#result:contains("Very Weak") { color: var(--strength-0); }
-#result:contains("Weak") { color: var(--strength-1); }
-#result:contains("Fair") { color: var(--strength-2); }
-#result:contains("Strong") { color: var(--strength-3); }
-#result:contains("Very Strong") { color: var(--strength-4); }
-
-/* ==========================================================================
-   Metrics Metric Matrix Grid
-   ========================================================================== */
-.metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 1.5rem;
+.meter-container {
+    background: #eee;
+    height: 8px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    overflow: hidden;
 }
 
-.metrics-grid p {
-    background-color: #f8fafc;
-    border: 1px solid var(--border-color);
-    padding: 0.5rem;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    text-align: center;
-    color: var(--text-muted);
-    font-weight: 500;
+#strengthBar {
+    height: 100%;
+    width: 0%;
+    background-color: var(--very-weak);
+    transition: width 0.3s ease, background-color 0.3s ease;
 }
 
-/* ==========================================================================
-   Dynamic Feedback Area
-   ========================================================================== */
-#feedbackBox {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+.status-text {
+    font-weight: bold;
+    font-size: 15px;
+    margin-bottom: 24px;
 }
 
-.feedback-item {
-    font-size: 0.85rem;
-    color: #9b2c2c;
-    background-color: #fff5f5;
-    border-left: 4px solid var(--strength-0);
-    padding: 0.5rem 0.75rem;
-    border-radius: 0 6px 6px 0;
-    animation: fadeIn 0.2s ease-in-out;
+/* Dynamic Classes for Label Colors */
+.very-weak { color: var(--very-weak); }
+.weak { color: var(--weak); }
+.fair { color: var(--fair); }
+.strong { color: var(--strong); }
+.very-strong { color: var(--very-strong); }
+
+.feedback-container {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+    border-left: 4px solid #dcdde1;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-4px); }
-    to { opacity: 1; transform: translateY(0); }
+.feedback-container h3 {
+    font-size: 14px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #7f8c8d;
+}
+
+#feedbackList {
+    list-style-type: none;
+}
+
+#feedbackList li {
+    font-size: 13px;
+    margin-bottom: 6px;
+    position: relative;
+    padding-left: 18px;
+    color: #57606f;
+}
+
+#feedbackList li::before {
+    content: "•";
+    position: absolute;
+    left: 4px;
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+/* Style for positive state feedback */
+#feedbackList li.good-news::before {
+    color: var(--strong);
+    content: "✓";
 }

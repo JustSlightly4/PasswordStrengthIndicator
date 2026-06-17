@@ -1,255 +1,181 @@
-const inputField = document.getElementById('myInput');
-const resultParagraph = document.getElementById('result');
-const entropyParagraph = document.getElementById('entropy');
-const uniquenessParagraph = document.getElementById('uniqueness');
-const patternsParagraph = document.getElementById('patterns');
-const feedbackBox = document.getElementById('feedbackBox');
+document.addEventListener("DOMContentLoaded", () => {
+    const passwordInput = document.getElementById("passwordInput");
+    const toggleVisibility = document.getElementById("toggleVisibility");
+    const strengthBar = document.getElementById("strengthBar");
+    const strengthLabel = document.getElementById("strengthLabel");
+    const feedbackList = document.getElementById("feedbackList");
 
-const commonPasswords = new Set([
-    "qwerty",
-    "qwertyuiop",
-    "qwertyuiop[]",
-    "asdf",
-    "asdfghjkl",
-    "asdfghjkl;\"",
-    "zxcvbnm",
-    "zxcvbnm,./",
-    "password",
-    "admin",
-    "hello",
-    "helloworld",
-]);
+    const commonDictionary = [
+        "password", "123456", "123456789", "qwerty", "iloveyou", "welcome", 
+        "admin", "letmein", "trustnoone", "monkey", "shadow", "computer security"
+    ];
 
-const resultColors = [
-    "var(--strength-0)", // 0 - Very Weak
-    "var(--strength-1)", // 1 - Weak
-    "var(--strength-2)", // 2 - Fair
-    "var(--strength-3)", // 3 - Strong
-    "var(--strength-4)"  // 4 - Very Strong
-];
+    const leetMap = {
+        '4': 'a', '@': 'a', '8': 'b', '3': 'e', '1': 'i', '!': 'i', 
+        '0': 'o', '5': 's', '$': 's', '7': 't', '2': 'z'
+    };
 
-let typingTimer;
-const doneTypingInterval = 500; 
+    function decodeLeet(str) {
+        return str.toLowerCase().split('').map(char => leetMap[char] || char).join('');
+    }
 
-inputField.addEventListener('input', function() {
-    clearTimeout(typingTimer);
-    typingTimer = setTimeout(executeAction, doneTypingInterval);
-});
+    // Toggle Visibility Feature
+    toggleVisibility.addEventListener("click", () => {
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            toggleVisibility.textContent = "Hide";
+        } else {
+            passwordInput.type = "password";
+            toggleVisibility.textContent = "Show";
+        }
+    });
 
-inputField.addEventListener('paste', function() {
-    clearTimeout(typingTimer);
-    typingTimer = setTimeout(executeAction, doneTypingInterval);
-});
+    // Real-Time Event Listener
+    passwordInput.addEventListener("input", () => {
+        const password = passwordInput.value;
+        const analysis = evaluatePassword(password);
+        updateUI(analysis);
+    });
 
-function countUniqueCharacters(password) {
-    return new Set(password).size;
-}
+    // Core Security Scoring Algorithm
+    function evaluatePassword(pwd) {
+        let score = 0;
+        let tips = [];
 
-function isAllSame(password) {
-    return new Set(password).size === 1;
-}
+        if (pwd.length === 0) {
+            return { score: 0, category: "Very Weak", colorClass: "very-weak", tips: ["Enter a password to start evaluation."] };
+        }
 
-function hasRepeatingPattern(password) {
-    const len = password.length;
+        // --- 1. BASE ENTROPY BONUS ---
+        // Length provides exponential security in mathematical search spaces
+        score += pwd.length * 4; 
 
-    for (let start = 0; start < len; start++) {
+        // Character Variety Verification
+        const hasUpper = /[A-Z]/.test(pwd);
+        const hasLower = /[a-z]/.test(pwd);
+        const hasDigit = /[0-9]/.test(pwd);
+        const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
 
-        for (let size = 1; size <= (len - start) / 2; size++) {
+        if (hasUpper) score += 5;
+        if (hasLower) score += 5;
+        if (hasDigit) score += 5;
+        if (hasSpecial) score += 5;
 
-            const pattern = password.slice(start, start + size);
-            if (!pattern) continue;
 
-            let i = start;
-            let matchCount = 0;
+        // --- 2. PENALTY DETECTIONS (Attacker & Pattern Awareness) ---
+        
+        // Match Risk A: Check Normalized & Dictionary Entries
+        const normalizedPwd = decodeLeet(pwd.toLowerCase());
+        let dictionaryMatch = false;
 
-            while (i + size <= len &&
-                   password.slice(i, i + size) === pattern) {
-                matchCount++;
-                i += size;
+        for (let word of commonDictionary) {
+            if (normalizedPwd.includes(word)) {
+                dictionaryMatch = true;
+                break;
             }
+        }
 
-            if (matchCount > 2) {
+        if (dictionaryMatch) {
+            score -= 40; 
+            tips.push("Contains a common dictionary word or pattern (easily guessed).");
+        }
+
+        // Match Risk B: Character Repetitions (e.g., "aaaaaa", "11111")
+        if (/(\w|\d|\s)\1{2,}/.test(pwd)) {
+            score -= 15;
+            tips.push("Avoid repetitive character configurations.");
+        }
+
+        // Match Risk C: Straight Sequential Runs (e.g., "abc", "789")
+        if (hasSequentialPatterns(pwd)) {
+            score -= 15;
+            tips.push("Avoid sequential letters or keyboard rows (e.g., 'abc', '123').");
+        }
+
+        // Match Risk D: Minimal Length Boundaries
+        if (pwd.length < 8) {
+            score -= 20;
+            tips.push("Critical Deficit: Shorter than the standard 8-character modern baseline.");
+        }
+
+
+        // Bound check scores between explicit limits
+        score = Math.max(0, Math.min(score, 100));
+
+        // --- 3. CATEGORY MAPPER ---
+        let category = "Very Weak";
+        let colorClass = "very-weak";
+
+        if (score > 80) {
+            category = "Very Strong";
+            colorClass = "very-strong";
+        } else if (score > 60) {
+            category = "Strong";
+            colorClass = "strong";
+        } else if (score > 40) {
+            category = "Fair";
+            colorClass = "fair";
+        } else if (score > 20) {
+            category = "Weak";
+            colorClass = "weak";
+        }
+
+        // Positive enforcement hints if the score isn't maxed
+        if (score < 80 && tips.length === 0) {
+            if (pwd.length < 14) {
+                tips.push("Increase length beyond 14 characters to achieve multi-decade brute-force resistance.");
+            }
+            if (!hasSpecial || !hasDigit) {
+                tips.push("Mixing unexpected character structures expands attacker dictionary requirements.");
+            }
+        }
+
+        if (score >= 85) {
+            tips.push("Excellent. Your passphrase resists modern high-GPU dictionary attacks.");
+        }
+
+        return { score, category, colorClass, tips };
+    }
+
+    // Mathematical routine checking for sequential unicode indexes
+    function hasSequentialPatterns(str) {
+        const lower = str.toLowerCase();
+        for (let i = 0; i < lower.length - 2; i++) {
+            const code1 = lower.charCodeAt(i);
+            const code2 = lower.charCodeAt(i + 1);
+            const code3 = lower.charCodeAt(i + 2);
+            
+            // Forward sequence (abc) or Reverse sequence (cba)
+            if ((code2 === code1 + 1 && code3 === code2 + 1) || 
+                (code2 === code1 - 1 && code3 === code2 - 1)) {
                 return true;
             }
         }
+        return false;
     }
 
-    return false;
-}
+    // DOM Painting Layer
+    function updateUI(analysis) {
+        // Dynamic UI adjustment
+        strengthBar.style.width = `${analysis.score}%`;
+        
+        // Remove prior dynamic utility classes
+        strengthLabel.className = "";
+        strengthLabel.classList.add(analysis.colorClass);
+        strengthLabel.textContent = analysis.category;
 
-function hasSequence(password) {
-    let counter = 1;
+        // Apply dynamic thematic color to the strength bar
+        strengthBar.style.backgroundColor = `var(--${analysis.colorClass})`;
 
-    for (let i = 0; i < password.length - 1; i++) {
-        const current = password[i].toLowerCase().charCodeAt(0);
-        const next = password[i + 1].toLowerCase().charCodeAt(0);
-
-        if (next === current + 1) {
-            counter++;
-            if (counter > 2) return true;
-        } else {
-            counter = 1;
-        }
+        // Re-render suggestions
+        feedbackList.innerHTML = "";
+        analysis.tips.forEach(tip => {
+            const li = document.createElement("li");
+            li.textContent = tip;
+            if (analysis.score >= 85) {
+                li.classList.add("good-news");
+            }
+            feedbackList.appendChild(li);
+        });
     }
-
-    return false;
-}
-
-function hasBackwardsSequence(password) {
-    let counter = 1;
-
-    for (let i = 0; i < password.length - 1; i++) {
-        const current = password[i].toLowerCase().charCodeAt(0);
-        const next = password[i + 1].toLowerCase().charCodeAt(0);
-
-        if (next === current - 1) {
-            counter++;
-            if (counter > 2) return true;
-        } else {
-            counter = 1;
-        }
-    }
-
-    return false;
-}
-
-function containsCommonPassword(password) {
-    const lower = password.toLowerCase();
-
-    for (let common of commonPasswords) {
-        if (lower.includes(common)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-function estimateEntropy(password) {
-    const pool =
-        (/[a-z]/.test(password) ? 26 : 0) +
-        (/[A-Z]/.test(password) ? 26 : 0) +
-        (/[0-9]/.test(password) ? 10 : 0) +
-        (/[^a-zA-Z0-9]/.test(password) ? 33 : 0);
-
-    return password.length * Math.log2(pool || 1);
-}
-
-function hasRequiredCharacterTypes(password) {
-    const hasUppercase = /[A-Z]/.test(password);
-    const hasLowercase = /[a-z]/.test(password);
-    const hasSpecialChar = /[^a-zA-Z0-9]/.test(password);
-
-    return hasUppercase && hasLowercase && hasSpecialChar;
-}
-
-function executeAction() {
-
-    const password = inputField.value;
-
-    feedbackBox.innerHTML = "";
-    
-    if (password.trim() === "") {
-        resultParagraph.style.color = "#718096";
-        resultParagraph.textContent = "Type in a password for grading...";
-        entropyParagraph.textContent = "Entropy Score: nil";
-        uniquenessParagraph.textContent = "Uniqueness Score: nil";
-        patternsParagraph.textContent = "Patterns Score: nil";
-        return;
-    }
-
-    let feedback = [];
-
-    //Entropy Score
-    let passwordEntropy = estimateEntropy(password);
-    let entropyScore = 0;
-    if (passwordEntropy > 119) {
-        entropyScore = 4; // Very Strong
-    } else if (passwordEntropy > 79) {
-        entropyScore = 3; // Strong
-    } else if (passwordEntropy > 59) {
-        entropyScore = 2; // Fair
-        feedback.push("This password has moderate strength but could still be cracked within days using targeted guessing.");
-    } else if (passwordEntropy > 35) {
-        entropyScore = 1; // Weak
-        feedback.push("This password could be cracked in minutes to hours using basic brute-force tools.");
-    } else {
-        feedback.push("This password is extremely easy to guess and could be cracked instantly.");
-    }
-
-    //Unique Character Score
-    let uniqueCharacters = countUniqueCharacters(password);
-    let uniquenessScore = 0;
-
-    if (hasRequiredCharacterTypes(password)) {
-        if (uniqueCharacters > 7) {
-            uniquenessScore = 4;
-        } else if (uniqueCharacters > 6) {
-            uniquenessScore = 3;
-        } else if (uniqueCharacters > 5) { 
-            uniquenessScore = 2;
-            feedback.push("Password should have more unique characters.")
-        } else if (uniqueCharacters > 4) {
-            uniquenessScore = 1;
-            feedback.push("Password should have more unique characters.")
-        } else {
-            feedback.push("Password should have more unique characters.")
-        }
-    } else {
-        feedback.push("Password should have at least one lowercase, one uppercase, and one special character.");
-    }
-
-    //Pattern Scoring
-    let patternScore = 4;
-    if (isAllSame(password)) {
-        patternScore = 0;
-        feedback.push("Password should not be a single character or number.");
-    } else {
-        if (hasRepeatingPattern(password)) {
-            feedback.push("Password should avoid having repeating patterns.");
-            patternScore -= 2;
-        }
-        if (hasSequence(password) || hasBackwardsSequence(password)) {
-            feedback.push("Password should avoid having sequences of characters or numbers.");
-            patternScore -= 2;
-        }
-        if (containsCommonPassword(password)) {
-            feedback.push("Password should not contain common passwords.");
-            patternScore -= 3;
-        }
-        if (patternScore < 0) patternScore = 0;
-    }
-
-    //Final Scoring
-    let finalScore = Math.round((entropyScore * 0.5) + (uniquenessScore * 0.2) + (patternScore * 0.3));
-
-    switch(finalScore) {
-        case 4:
-            resultParagraph.textContent = "Your password is Very Strong.";
-            break;
-        case 3:
-            resultParagraph.textContent = "Your password is Strong.";
-            break;
-        case 2:
-            resultParagraph.textContent = "Your password is Fair.";
-            break;
-        case 1:
-            resultParagraph.textContent = "Your password is Weak.";
-            break;
-        default:
-            resultParagraph.textContent = "Your password is Very Weak.";
-            break;
-    }
-    resultParagraph.style.color = resultColors[finalScore];
-
-    entropyParagraph.textContent = "Entropy Score: " + entropyScore;
-    uniquenessParagraph.textContent = "Uniqueness Score: " + uniquenessScore;
-    patternsParagraph.textContent = "Patterns Score: " + patternScore;
-
-    feedback.forEach(msg => {
-        const div = document.createElement("div");
-        div.className = "feedback-item";
-        div.textContent = msg;
-        feedbackBox.appendChild(div);
-    });
-}
+});
