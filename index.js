@@ -30,14 +30,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Real-Time Event Listener
     passwordInput.addEventListener("input", () => {
         const password = passwordInput.value;
         const analysis = evaluatePassword(password);
         updateUI(analysis);
     });
 
-    // Core Security Scoring Algorithm
     function evaluatePassword(pwd) {
         let score = 0;
         let tips = [];
@@ -46,11 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
             return { score: 0, category: "Very Weak", colorClass: "very-weak", tips: ["Enter a password to start evaluation."] };
         }
 
-        // --- 1. BASE ENTROPY BONUS ---
-        // Length provides exponential security in mathematical search spaces
         score += pwd.length * 4; 
 
-        // Character Variety Verification
         const hasUpper = /[A-Z]/.test(pwd);
         const hasLower = /[a-z]/.test(pwd);
         const hasDigit = /[0-9]/.test(pwd);
@@ -61,10 +56,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (hasDigit) score += 5;
         if (hasSpecial) score += 5;
 
-
-        // --- 2. PENALTY DETECTIONS (Attacker & Pattern Awareness) ---
-        
-        // Match Risk A: Check Normalized & Dictionary Entries
         const normalizedPwd = decodeLeet(pwd.toLowerCase());
         let dictionaryMatch = false;
 
@@ -80,29 +71,23 @@ document.addEventListener("DOMContentLoaded", () => {
             tips.push("Contains a common dictionary word or pattern (easily guessed).");
         }
 
-        // Match Risk B: Character Repetitions (e.g., "aaaaaa", "11111")
         if (/(\w|\d|\s)\1{2,}/.test(pwd)) {
             score -= 15;
             tips.push("Avoid repetitive character configurations.");
         }
 
-        // Match Risk C: Straight Sequential Runs (e.g., "abc", "789")
         if (hasSequentialPatterns(pwd)) {
             score -= 15;
             tips.push("Avoid sequential letters or keyboard rows (e.g., 'abc', '123').");
         }
 
-        // Match Risk D: Minimal Length Boundaries
         if (pwd.length < 8) {
             score -= 20;
             tips.push("Critical Deficit: Shorter than the standard 8-character modern baseline.");
         }
 
-
-        // Bound check scores between explicit limits
         score = Math.max(0, Math.min(score, 100));
 
-        // --- 3. CATEGORY MAPPER ---
         let category = "Very Weak";
         let colorClass = "very-weak";
 
@@ -120,7 +105,6 @@ document.addEventListener("DOMContentLoaded", () => {
             colorClass = "weak";
         }
 
-        // Positive enforcement hints if the score isn't maxed
         if (score < 80 && tips.length === 0) {
             if (pwd.length < 14) {
                 tips.push("Increase length beyond 14 characters to achieve multi-decade brute-force resistance.");
@@ -137,7 +121,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return { score, category, colorClass, tips };
     }
 
-    // Mathematical routine checking for sequential unicode indexes
     function hasSequentialPatterns(str) {
         const lower = str.toLowerCase();
         for (let i = 0; i < lower.length - 2; i++) {
